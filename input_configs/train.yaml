@@ -1,11 +1,12 @@
 log:
-  exp_name: exp_name
-  exp_dir: /path/to/experiments
-  save_steps: 250
+  exp_name: neti-1
+  exp_dir: /content/NeTI/experiments
+  save_steps: 100
+  report_to: comet_ml
 data:
-  train_data_dir: /path/to/data/concept
-  placeholder_token: <concept-name>
-  super_category_token: super_category
+  train_data_dir: /content/NeTI/concept
+  placeholder_token: <*>
+  super_category_token: doll
   dataloader_num_workers: 8
 model:
   pretrained_model_name_or_path: CompVis/stable-diffusion-v1-4
@@ -21,5 +22,5 @@ eval:
 optim:
   max_train_steps: 1000
   learning_rate: 1e-3
-  train_batch_size: 2
+  train_batch_size: 1
   gradient_accumulation_steps: 4
