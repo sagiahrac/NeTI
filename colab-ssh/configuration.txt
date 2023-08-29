@@ -1,0 +1,11 @@
+!pip install -q condacolab
+import condacolab
+condacolab.install()
+
+!git clone https://github.com/sagiahrac/NeTI.git
+!git clone https://github.com/WassimBenzarti/colab-ssh.git
+%cd /content/colab-ssh
+
+!pip install .
+from colab_ssh import launch_ssh_cloudflared, init_git_cloudflared
+launch_ssh_cloudflared(password="sagi6")
