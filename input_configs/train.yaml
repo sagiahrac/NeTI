@@ -4,7 +4,7 @@ log:
   save_steps: 100
   report_to: comet_ml
 data:
-  train_data_dir: /content/NeTI/concept
+  train_data_dir: /content/NeTI/concept-example
   placeholder_token: <*>
   super_category_token: doll
   dataloader_num_workers: 8
