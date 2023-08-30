@@ -1,11 +1,11 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 import torch
 from torch import nn
 from transformers import CLIPTextConfig
 
 from models.neti_mapper import NeTIMapper
-from utils.types import NeTIBatch
+from utils.types import NeTIBatch, NeTIVPsBatch
 
 
 class NeTICLIPTextEmbeddings(nn.Module):
@@ -24,7 +24,7 @@ class NeTICLIPTextEmbeddings(nn.Module):
     def forward(self, input_ids: Optional[torch.LongTensor] = None,
                 position_ids: Optional[torch.LongTensor] = None,
                 inputs_embeds: Optional[torch.FloatTensor] = None,
-                batch: Optional[NeTIBatch] = None) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+                batch: Optional[Union[NeTIBatch, NeTIVPsBatch]] = None) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
 
         if batch is not None:
             input_ids = batch.input_ids
@@ -42,9 +42,17 @@ class NeTICLIPTextEmbeddings(nn.Module):
         ####################################################################
         bypass_outputs = None
         if batch is not None:
-            mapper_outputs = self.mapper(timestep=batch.timesteps.float(),
-                                         unet_layer=batch.unet_layers.float(),
-                                         truncation_idx=batch.truncation_idx)
+            if self.mapper.use_vps_encoder:
+                mapper_outputs = self.mapper(timestep=batch.timesteps.float(),
+                                            unet_layer=batch.unet_layers.float(),
+                                            azimuth=batch.azimuths.float(),
+                                            elevation=batch.elevations.float(),
+                                            truncation_idx=batch.truncation_idx)
+            else:
+                mapper_outputs = self.mapper(timestep=batch.timesteps.float(),
+                                            unet_layer=batch.unet_layers.float(),
+                                            truncation_idx=batch.truncation_idx)
+
             mapper_outputs = mapper_outputs.to(dtype=inputs_embeds.dtype, device=inputs_embeds.device)
             if self.mapper.output_bypass:
                 bypass_outputs = mapper_outputs[:, mapper_outputs.shape[1] // 2:]
@@ -53,6 +61,10 @@ class NeTICLIPTextEmbeddings(nn.Module):
             # Overwrite the index of the placeholder token with the mapper output for each entry in the batch
             learnable_idxs = (input_ids == batch.placeholder_token_id).nonzero(as_tuple=True)[1]
             inputs_embeds[torch.arange(input_ids.shape[0]), learnable_idxs] = mapper_outputs
+        
+        else:
+            if self.mapper.use_vps_encoder:
+                raise NotImplementedError("NeTICLIPTextEmbeddings does not support use_vps_encoder=True with batch=None")
 
         position_embeddings = self.position_embedding(position_ids)
         embeddings = inputs_embeds + position_embeddings

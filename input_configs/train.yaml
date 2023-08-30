@@ -17,6 +17,7 @@ model:
   pe_sigmas: {'sigma_t': 0.03, 'sigma_l': 2.0}
   num_pe_time_anchors: 10
   output_bypass: True
+  use_vps_encoder: True
 eval:
   validation_steps: 250
 optim:

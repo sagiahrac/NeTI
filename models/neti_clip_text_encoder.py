@@ -8,7 +8,7 @@ from transformers.models.clip.modeling_clip import CLIPTextConfig, CLIPTextModel
 from transformers.models.clip.modeling_clip import CLIPTextTransformer, _expand_mask
 
 from models.net_clip_text_embedding import NeTICLIPTextEmbeddings
-from utils.types import NeTIBatch
+from utils.types import NeTIBatch, NeTIVPsBatch
 
 
 class NeTICLIPTextModel(CLIPTextModel):
@@ -54,7 +54,7 @@ class NeTICLIPTextTransformer(CLIPTextTransformer):
                 output_attentions: Optional[bool] = None,
                 output_hidden_states: Optional[bool] = None,
                 return_dict: Optional[bool] = None,
-                batch: Optional[NeTIBatch] = None) -> Union[Tuple, BaseModelOutputWithPooling]:
+                batch: Optional[Union[NeTIBatch, NeTIVPsBatch]] = None) -> Union[Tuple, BaseModelOutputWithPooling]:
 
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (

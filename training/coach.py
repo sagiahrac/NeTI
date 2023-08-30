@@ -22,7 +22,7 @@ from training.config import RunConfig
 from training.dataset import TextualInversionDataset
 from training.logger import CoachLogger
 from training.validate import ValidationHandler
-from utils.types import NeTIBatch
+from utils.types import NeTIBatch, NeTIVPsBatch
 
 
 class Coach:
@@ -106,8 +106,15 @@ class Coach:
                     noisy_latents = self.noise_scheduler.add_noise(latents, noise, timesteps)
 
                     # Get the text embedding for conditioning
+                    azimuths, elevations = None, None
+                    if self.cfg.model.use_vps_encoder:
+                        azimuths = batch["azimuths"].long()
+                        elevations = batch["elevations"].long()
+                        
                     _hs = self.get_text_conditioning(input_ids=batch['input_ids'],
                                                      timesteps=timesteps,
+                                                     azimuths=azimuths,
+                                                     elevations=elevations,
                                                      device=latents.device)
 
                     # Predict the noise residual
@@ -172,15 +179,19 @@ class Coach:
                                                mapper_save_name=f"mapper-final.pt")
         self.accelerator.end_training()
 
-    def get_text_conditioning(self, input_ids: torch.Tensor, timesteps: torch.Tensor, device: torch.device) -> Dict:
+    def get_text_conditioning(self, input_ids: torch.Tensor, timesteps: torch.Tensor,
+                              azimuths: Optional[torch.Tensor], elevations: Optional[torch.Tensor],
+                              device: torch.device) -> Dict:
         """ Compute the text conditioning for the current batch of images using our text encoder over-ride. """
         _hs = {"this_idx": 0}
         for layer_idx, unet_layer in enumerate(UNET_LAYERS):
-            neti_batch = NeTIBatch(
+            neti_batch = NeTIVPsBatch(
                 input_ids=input_ids,
                 placeholder_token_id=self.placeholder_token_id,
                 timesteps=timesteps,
-                unet_layers=torch.tensor(layer_idx, device=device).repeat(timesteps.shape[0])
+                unet_layers=torch.tensor(layer_idx, device=device).repeat(timesteps.shape[0]),
+                azimuths=azimuths,
+                elevations=elevations,
             )
             layer_hidden_state, layer_hidden_state_bypass = self.text_encoder(batch=neti_batch)
             layer_hidden_state = layer_hidden_state[0].to(dtype=self.weight_dtype)
@@ -248,7 +259,8 @@ class Coach:
                                      use_positional_encoding=self.cfg.model.use_positional_encoding,
                                      num_pe_time_anchors=self.cfg.model.num_pe_time_anchors,
                                      pe_sigmas=self.cfg.model.pe_sigmas,
-                                     output_bypass=self.cfg.model.output_bypass)
+                                     output_bypass=self.cfg.model.output_bypass,
+                                     use_vps_encoder=self.cfg.model.use_vps_encoder)
         return neti_mapper, loaded_iteration
 
     def _init_sd_models(self):

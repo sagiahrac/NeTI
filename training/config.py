@@ -71,6 +71,8 @@ class ModelConfig:
     revision: Optional[str] = None
     # Whether training should be resumed from a previous checkpoint.
     mapper_checkpoint_path: Optional[Path] = None
+    # Whether to use the VPs encoder
+    use_vps_encoder: bool = False
 
     def __post_init__(self):
         if self.pe_sigmas is not None:

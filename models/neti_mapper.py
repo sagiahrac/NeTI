@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch import nn
 
 from constants import UNET_LAYERS
-from models.positional_encoding import NeTIPositionalEncoding, BasicEncoder
+from models.positional_encoding import NeTIPositionalEncoding, BasicEncoder, BasicEncoderWithVPs, NeTIPositionalEncodingWithVPs
 from utils.types import PESigmas
 
 
@@ -21,22 +21,32 @@ class NeTIMapper(nn.Module):
                  use_positional_encoding: bool = True,
                  num_pe_time_anchors: int = 10,
                  pe_sigmas: PESigmas = PESigmas(sigma_t=0.03, sigma_l=2.0),
-                 output_bypass: bool = True):
+                 output_bypass: bool = True,
+                 use_vps_encoder: bool = False):
         super().__init__()
         self.use_nested_dropout = use_nested_dropout
         self.nested_dropout_prob = nested_dropout_prob
         self.norm_scale = norm_scale
         self.output_bypass = output_bypass
+        self.use_vps_encoder = use_vps_encoder
         if self.output_bypass:
             output_dim *= 2  # Output two vectors
 
         self.use_positional_encoding = use_positional_encoding
         if self.use_positional_encoding:
-            self.encoder = NeTIPositionalEncoding(sigma_t=pe_sigmas.sigma_t, sigma_l=pe_sigmas.sigma_l).cuda()
+            if use_vps_encoder:
+                self.encoder = NeTIPositionalEncodingWithVPs(sigma_t=pe_sigmas.sigma_t, sigma_l=pe_sigmas.sigma_l,
+                                                             sigma_az=pe_sigmas.sigma_az, sigma_el=pe_sigmas.sigma_el).cuda()
+            else:
+                self.encoder = NeTIPositionalEncoding(sigma_t=pe_sigmas.sigma_t, sigma_l=pe_sigmas.sigma_l).cuda()
             self.input_dim = num_pe_time_anchors * len(unet_layers)
         else:
-            self.encoder = BasicEncoder().cuda()
-            self.input_dim = 2
+            if use_vps_encoder:
+                self.encoder = BasicEncoderWithVPs().cuda()
+                self.input_dim = 4
+            else:
+                self.encoder = BasicEncoder().cuda()
+                self.input_dim = 2
 
         self.set_net(num_unet_layers=len(unet_layers),
                      num_time_anchors=num_pe_time_anchors,
@@ -57,18 +67,25 @@ class NeTIMapper(nn.Module):
             input_layer = nn.Identity()
         return input_layer
 
-    def forward(self, timestep: torch.Tensor, unet_layer: torch.Tensor, truncation_idx: int = None) -> torch.Tensor:
-        embedding = self.extract_hidden_representation(timestep, unet_layer)
+    def forward(self, timestep: torch.Tensor, unet_layer: torch.Tensor,
+                azimuth: torch.Tensor = None, elevation: torch.Tensor = None,
+                truncation_idx: int = None) -> torch.Tensor:
+        embedding = self.extract_hidden_representation(timestep, unet_layer, azimuth, elevation)
         if self.use_nested_dropout:
             embedding = self.apply_nested_dropout(embedding, truncation_idx=truncation_idx)
         embedding = self.get_output(embedding)
         return embedding
 
-    def get_encoded_input(self, timestep: torch.Tensor, unet_layer: torch.Tensor) -> torch.Tensor:
-        return self.encoder.encode(timestep, unet_layer)
+    def get_encoded_input(self, timestep: torch.Tensor, unet_layer: torch.Tensor,
+                          azimuth: torch.Tensor = None, elevation: torch.Tensor = None) -> torch.Tensor:
+        if self.use_vps_encoder:
+            return self.encoder.encode(timestep, unet_layer, azimuth, elevation)
+        else:
+            return self.encoder.encode(timestep, unet_layer)
 
-    def extract_hidden_representation(self, timestep: torch.Tensor, unet_layer: torch.Tensor) -> torch.Tensor:
-        encoded_input = self.get_encoded_input(timestep, unet_layer)
+    def extract_hidden_representation(self, timestep: torch.Tensor, unet_layer: torch.Tensor,
+                                      azimuth: torch.Tensor = None, elevation: torch.Tensor = None) -> torch.Tensor:
+        encoded_input = self.get_encoded_input(timestep, unet_layer, azimuth, elevation)
         embedding = self.net(encoded_input)
         return embedding
 
