@@ -62,7 +62,8 @@ class NeTIMapper(nn.Module):
     def set_input_layer(self, num_unet_layers: int, num_time_anchors: int) -> nn.Module:
         if self.use_positional_encoding:
             input_layer = nn.Linear(self.encoder.num_w * 2, self.input_dim)
-            input_layer.weight.data = self.encoder.init_layer(num_time_anchors, num_unet_layers)
+            input_layer.weight.data = self.encoder.init_layer(num_time_anchors, num_unet_layers,
+                                                              min_azim=0, max_azim=360, min_elev=-10, max_elev=90)
         else:
             input_layer = nn.Identity()
         return input_layer

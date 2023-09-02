@@ -52,6 +52,89 @@ class TextualInversionDataset(Dataset):
         self.center_crop = center_crop
         self.flip_p = flip_p
 
+        self.image_paths = list(self.data_root.glob("*/*"))
+
+        self.num_images = len(self.image_paths)
+        self._length = self.num_images
+
+        print(f"Running on {self.num_images} images")
+
+        if set == "train":
+            self._length = self.num_images * repeats
+
+        self.interpolation = {
+            "linear": PIL_INTERPOLATION["linear"],
+            "bilinear": PIL_INTERPOLATION["bilinear"],
+            "bicubic": PIL_INTERPOLATION["bicubic"],
+            "lanczos": PIL_INTERPOLATION["lanczos"],
+        }[interpolation]
+
+        self.templates = [prompt + ' {} view' for prompt in IMAGENET_TEMPLATES_SMALL]
+        self.flip_transform = transforms.RandomHorizontalFlip(p=self.flip_p)
+
+    def __len__(self) -> int:
+        return self._length
+
+    def __getitem__(self, i: int) -> Dict[str, Any]:
+        image_path = self.image_paths[i % self.num_images]
+        category = image_path.parent.name
+        image = Image.open(image_path)
+        elev, azim = 15, 20
+
+        if not image.mode == "RGB":
+            image = image.convert("RGB")
+
+        example = dict()
+        example['text'] = random.choice(self.templates).format(category, self.placeholder_token)
+        example["input_ids"] = self.tokenizer(
+            example['text'],
+            padding="max_length",
+            truncation=True,
+            max_length=self.tokenizer.model_max_length,
+            return_tensors="pt",
+        ).input_ids[0]
+        example["elev"] = torch.tensor(elev)
+        example["azim"] = torch.tensor(azim)
+
+        # default to score-sde preprocessing
+        img = np.array(image).astype(np.uint8)
+
+        if self.center_crop:
+            crop = min(img.shape[0], img.shape[1])
+            h, w = img.shape[0], img.shape[1]
+            img = img[(h - crop) // 2: (h + crop) // 2, (w - crop) // 2: (w + crop) // 2]
+
+        image = Image.fromarray(img)
+        image = image.resize((self.size, self.size), resample=self.interpolation)
+
+        image = self.flip_transform(image)
+        image = np.array(image).astype(np.uint8)
+        image = (image / 127.5 - 1.0).astype(np.float32)
+
+        example["pixel_values"] = torch.from_numpy(image).permute(2, 0, 1)
+        return example
+
+
+class TextualInversionVPsDataset(Dataset):
+
+    def __init__(self, data_root: Path,
+                 tokenizer: CLIPTokenizer,
+                 learnable_property: str = "object",  # [object, style]
+                 size: int = 512,
+                 repeats: int = 100,
+                 interpolation: str = "bicubic",
+                 flip_p: float = 0.5,
+                 set: str = "train",
+                 placeholder_token: str = "*",
+                 center_crop: bool = False):
+        self.data_root = data_root
+        self.tokenizer = tokenizer
+        self.learnable_property = learnable_property
+        self.size = size
+        self.placeholder_token = placeholder_token
+        self.center_crop = center_crop
+        self.flip_p = flip_p
+
         self.image_paths = list(self.data_root.glob("*"))
 
         self.num_images = len(self.image_paths)

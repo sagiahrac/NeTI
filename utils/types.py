@@ -15,8 +15,8 @@ class NeTIBatch:
 
 @dataclass
 class NeTIVPsBatch(NeTIBatch):
-    azimuths: torch.Tensor
-    elevations: torch.Tensor
+    azimuths: torch.Tensor = None
+    elevations: torch.Tensor = None
 
 
 @dataclass
