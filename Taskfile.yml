@@ -11,3 +11,16 @@ tasks:
     cmds:
       - git config user.email "sagiahrac@mail.tau.ac.il"
       - git config user.name "sagi ahrac"
+  
+  install-vscode-extensions:
+    cmds:
+      - code --install-extension ms-python.python
+      - code --install-extension ms-python.vscode-pylance
+      - code --install-extension github.copilot
+      - code --install-extension ms-toolsai.jupyter
+      - code --install-extension ms-vscode.cpptools
+      - code --install-extension cameron.vscode-pytest
+      - code --install-extension mhutchie.git-graph
+      - code --install-extension donjayamanne.githistory
+      - code --install-extension eamodio.gitlens
+      - code --install-extension task.vscode-task
