@@ -6,3 +6,8 @@ tasks:
   train-example:
     cmds:
       - COMET_API_KEY="MvZFPCkt1CN1iqrnsgahJ2Rwa" python scripts/train.py --config_path input_configs/train.yaml
+  
+  git-config:
+    cmds:
+      - git config user.email "sagiahrac@mail.tau.ac.il"
+      - git config user.name "sagi ahrac"
