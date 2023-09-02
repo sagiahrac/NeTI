@@ -95,13 +95,17 @@ def main(infer_cfg: InferenceConfig):
         output_path.mkdir(exist_ok=True, parents=True)
         for truncation_idx in infer_cfg.truncation_idxs:
             print(f"Running with truncation index: {truncation_idx}")
+            azimuth = torch.randint(0, 360, (1,))
+            elevation = torch.randint(-10, 90, (1,))
             prompt_image = run_inference(prompt=prompt,
                                          pipeline=pipeline,
                                          prompt_manager=prompt_manager,
                                          seeds=infer_cfg.seeds,
                                          output_path=output_path,
                                          num_images_per_prompt=1,
-                                         truncation_idx=truncation_idx)
+                                         truncation_idx=truncation_idx,
+                                         azimuth=azimuth,
+                                         elevation=elevation)
             if truncation_idx is not None:
                 save_name = f"{prompt.format(placeholder_token)}_truncation_{truncation_idx}.png"
             else:
@@ -115,12 +119,16 @@ def run_inference(prompt: str,
                   seeds: List[int],
                   output_path: Optional[Path] = None,
                   num_images_per_prompt: int = 1,
-                  truncation_idx: Optional[int] = None) -> Image.Image:
+                  truncation_idx: Optional[int] = None,
+                  azimuth: torch.Tensor = None,
+                  elevation: torch.Tensor = None) -> Image.Image:
     with torch.autocast("cuda"):
         with torch.no_grad():
             prompt_embeds = prompt_manager.embed_prompt(prompt,
                                                         num_images_per_prompt=num_images_per_prompt,
-                                                        truncation_idx=truncation_idx)
+                                                        truncation_idx=truncation_idx,
+                                                        azimuth=azimuth,
+                                                        elevation=elevation)
     joined_images = []
     for seed in seeds:
         generator = torch.Generator(device='cuda').manual_seed(seed)
@@ -130,7 +138,8 @@ def run_inference(prompt: str,
                                   num_images_per_prompt=num_images_per_prompt).images
         seed_image = Image.fromarray(np.concatenate(images, axis=1)).convert("RGB")
         if output_path is not None:
-            save_name = f'{seed}_truncation_{truncation_idx}.png' if truncation_idx is not None else f'{seed}.png'
+            viewpoint = f"azim{azimuth.numpy()[0]}_elev{elevation.numpy()[0]}"
+            save_name = f'{seed}_truncation_{truncation_idx}_{viewpoint}.png' if truncation_idx is not None else f'{seed}.png'
             seed_image.save(output_path / save_name)
         joined_images.append(seed_image)
     joined_image = vis_utils.get_image_grid(joined_images)

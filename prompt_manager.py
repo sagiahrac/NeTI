@@ -6,7 +6,7 @@ from transformers import CLIPTokenizer
 
 import constants
 from models.neti_clip_text_encoder import NeTICLIPTextModel
-from utils.types import NeTIBatch
+from utils.types import NeTIBatch, NeTIVPsBatch
 
 
 class PromptManager:
@@ -28,7 +28,9 @@ class PromptManager:
 
     def embed_prompt(self, text: str,
                      truncation_idx: Optional[int] = None,
-                     num_images_per_prompt: int = 1) -> List[Dict[str, Any]]:
+                     num_images_per_prompt: int = 1,
+                     azimuth: torch.Tensor = None,
+                     elevation: torch.Tensor = None) -> List[Dict[str, Any]]:
         """
         Compute the conditioning vectors for the given prompt. We assume that the prompt is defined using `{}`
         for indicating where to place the placeholder token string. See constants.VALIDATION_PROMPTS for examples.
@@ -47,11 +49,13 @@ class PromptManager:
         for timestep in tqdm(self.timesteps):
             _hs = {"this_idx": 0}.copy()
             for layer_idx, unet_layer in enumerate(self.unet_layers):
-                batch = NeTIBatch(input_ids=ids.to(device=self.text_encoder.device),
+                batch = NeTIVPsBatch(input_ids=ids.to(device=self.text_encoder.device),
                                   timesteps=timestep.unsqueeze(0).to(device=self.text_encoder.device),
                                   unet_layers=torch.tensor(layer_idx, device=self.text_encoder.device).unsqueeze(0),
                                   placeholder_token_id=self.placeholder_token_id,
-                                  truncation_idx=truncation_idx)
+                                  truncation_idx=truncation_idx,
+                                  azimuths=azimuth.to(device=self.text_encoder.device),
+                                  elevations=elevation.to(device=self.text_encoder.device))
                 layer_hs, layer_hs_bypass = self.text_encoder(batch=batch)
                 layer_hs = layer_hs[0].to(dtype=self.dtype)
                 _hs[f"CONTEXT_TENSOR_{layer_idx}"] = layer_hs.repeat(num_images_per_prompt, 1, 1)

@@ -44,15 +44,20 @@ class ValidationHandler:
                                        placeholder_token_id=self.placeholder_token_id)
         joined_images = []
         for prompt in prompts:
+            azimuth = torch.randint(0, 360, (1,))
+            elevation = torch.randint(-10, 90, (1,))
             images = self.infer_on_prompt(pipeline=pipeline,
                                           prompt_manager=prompt_manager,
                                           prompt=prompt,
                                           num_images_per_prompt=num_images_per_prompt,
-                                          seeds=seeds)
+                                          seeds=seeds,
+                                          azimuth=azimuth,
+                                          elevation=elevation)
             prompt_image = Image.fromarray(np.concatenate(images, axis=1))
             joined_images.append(prompt_image)
         final_image = Image.fromarray(np.concatenate(joined_images, axis=0))
-        final_image.save(self.cfg.log.exp_dir / f"val-image-{step}.png")
+        viewpoint = f"azim{azimuth.numpy()[0]}_elev{elevation.numpy()[0]}"
+        final_image.save(self.cfg.log.exp_dir / f"val-image-{viewpoint}-step-{step}.png")
         self.log_with_accelerator(accelerator, joined_images, step=step)
         del pipeline
         torch.cuda.empty_cache()
@@ -65,12 +70,14 @@ class ValidationHandler:
                         prompt_manager: PromptManager,
                         prompt: str,
                         seeds: List[int],
-                        num_images_per_prompt: int = 1) -> List[Image.Image]:
-        prompt_embeds = self.compute_embeddings(prompt_manager=prompt_manager, prompt=prompt)
+                        num_images_per_prompt: int = 1,
+                        azimuth: torch.Tensor = None,
+                        elevation: torch.Tensor = None) -> List[Image.Image]:
+        prompt_embeds = self.compute_embeddings(prompt_manager=prompt_manager, prompt=prompt, azimuth=azimuth, elevation=elevation)
         all_images = []
         for idx in tqdm(range(num_images_per_prompt)):
             generator = torch.Generator(device='cuda').manual_seed(seeds[idx])
-            images = sd_pipeline_call(pipeline,
+            images = sd_pipeline_call(pipeline, # TODO (sagi): add vp embedding as in dreamfusion
                                       prompt_embeds=prompt_embeds,
                                       generator=generator,
                                       num_images_per_prompt=1).images
@@ -78,10 +85,10 @@ class ValidationHandler:
         return all_images
 
     @staticmethod
-    def compute_embeddings(prompt_manager: PromptManager, prompt: str) -> torch.Tensor:
+    def compute_embeddings(prompt_manager: PromptManager, prompt: str, azimuth: torch.Tensor, elevation: torch.Tensor) -> torch.Tensor:
         with torch.autocast("cuda"):
             with torch.no_grad():
-                prompt_embeds = prompt_manager.embed_prompt(prompt)
+                prompt_embeds = prompt_manager.embed_prompt(prompt, azimuth=azimuth, elevation=elevation)
         return prompt_embeds
 
     def load_stable_diffusion_model(self, accelerator: Accelerator,

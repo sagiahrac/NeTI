@@ -108,8 +108,8 @@ class Coach:
                     # Get the text embedding for conditioning
                     azimuths, elevations = None, None
                     if self.cfg.model.use_vps_encoder:
-                        azimuths = batch["azimuths"].long()
-                        elevations = batch["elevations"].long()
+                        azimuths = batch["azimuth"].long()
+                        elevations = batch["elevation"].long()
                         
                     _hs = self.get_text_conditioning(input_ids=batch['input_ids'],
                                                      timesteps=timesteps,
