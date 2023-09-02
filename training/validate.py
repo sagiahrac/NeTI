@@ -43,9 +43,12 @@ class ValidationHandler:
                                        placeholder_token=self.cfg.data.placeholder_token,
                                        placeholder_token_id=self.placeholder_token_id)
         joined_images = []
+        viewpoints = []
         for prompt in prompts:
             azimuth = torch.randint(0, 360, (1,))
             elevation = torch.randint(-10, 90, (1,))
+            viewpoints += [f"az{azimuth.numpy()[0]}el{elevation.numpy()[0]}"]
+            
             images = self.infer_on_prompt(pipeline=pipeline,
                                           prompt_manager=prompt_manager,
                                           prompt=prompt,
@@ -56,8 +59,9 @@ class ValidationHandler:
             prompt_image = Image.fromarray(np.concatenate(images, axis=1))
             joined_images.append(prompt_image)
         final_image = Image.fromarray(np.concatenate(joined_images, axis=0))
-        viewpoint = f"azim{azimuth.numpy()[0]}_elev{elevation.numpy()[0]}"
-        final_image.save(self.cfg.log.exp_dir / f"val-image-{viewpoint}-step-{step}.png")
+        viewpoints = "_".join(viewpoints)
+        final_image.save(self.cfg.log.exp_dir / f"val-image-{viewpoints}-step-{step}.png")
+        print(f'Saved image at {str(self.cfg.log.exp_dir / f"val-image-{viewpoints}-step-{step}.png")}')
         self.log_with_accelerator(accelerator, joined_images, step=step)
         del pipeline
         torch.cuda.empty_cache()

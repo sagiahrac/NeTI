@@ -52,6 +52,7 @@ class TextualInversionDataset(Dataset):
         self.center_crop = center_crop
         self.flip_p = flip_p
 
+        self.categories_paths = list(self.data_root.glob("*"))
         self.image_paths = list(self.data_root.glob("*/*"))
 
         self.num_images = len(self.image_paths)
@@ -79,7 +80,7 @@ class TextualInversionDataset(Dataset):
         image_path = self.image_paths[i % self.num_images]
         category = image_path.parent.name
         image = Image.open(image_path)
-        elev, azim = 15, 20
+        elev, azim = 15, 20 # TODO: infer from path
 
         if not image.mode == "RGB":
             image = image.convert("RGB")

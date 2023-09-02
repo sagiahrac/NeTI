@@ -62,9 +62,9 @@ class NeTICLIPTextEmbeddings(nn.Module):
             learnable_idxs = (input_ids == batch.placeholder_token_id).nonzero(as_tuple=True)[1]
             inputs_embeds[torch.arange(input_ids.shape[0]), learnable_idxs] = mapper_outputs
         
-        else:
-            if self.mapper.use_vps_encoder:
-                raise NotImplementedError("NeTICLIPTextEmbeddings does not support use_vps_encoder=True with batch=None")
+        # else:
+        #     if self.mapper.use_vps_encoder:
+        #         raise NotImplementedError("NeTICLIPTextEmbeddings does not support use_vps_encoder=True with batch=None")
 
         position_embeddings = self.position_embedding(position_ids)
         embeddings = inputs_embeds + position_embeddings

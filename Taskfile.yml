@@ -24,3 +24,8 @@ tasks:
       - code --install-extension donjayamanne.githistory
       - code --install-extension eamodio.gitlens
       - code --install-extension task.vscode-task
+  
+  get-data:
+    cmds:
+      - cp /content/drive/MyDrive/research/rendered.zip .
+      - unzip rendered.zip
