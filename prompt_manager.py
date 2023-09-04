@@ -1,3 +1,4 @@
+import sys
 from typing import Optional, List, Dict, Any
 
 import torch
@@ -63,5 +64,6 @@ class PromptManager:
                     layer_hs_bypass = layer_hs_bypass[0].to(dtype=self.dtype)
                     _hs[f"CONTEXT_TENSOR_BYPASS_{layer_idx}"] = layer_hs_bypass.repeat(num_images_per_prompt, 1, 1)
             hidden_states_per_timestep.append(_hs)
+        sys.stderr.flush()
         print("Done.")
         return hidden_states_per_timestep
