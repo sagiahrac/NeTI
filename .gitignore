@@ -162,3 +162,5 @@ experiments/*
 _rendered/*
 .gitignore
 rendered.zip
+syn_rgb/*
+rendered*

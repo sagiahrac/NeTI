@@ -27,5 +27,20 @@ tasks:
   
   get-data:
     cmds:
-      - cp /content/drive/MyDrive/research/rendered.zip .
-      - unzip rendered.zip
+      - cp /content/drive/MyDrive/research/rendered_100.zip .
+      - unzip rendered_100.zip
+  
+  create-env:
+    cmds:
+      - mamba env create -f environment/environment.yaml
+  
+  setup:
+    cmds:
+      - echo "Building NeTI dev env"
+      - task: create-env
+      - echo "Configuring GIT user"
+      - task: git-config
+      - echo "Getting VSCode extensions"
+      - task: install-vscode-extensions
+      - echo "Copy train data from drive"
+      - task: get-data
