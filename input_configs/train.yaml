@@ -6,7 +6,7 @@ log:
 data:
   train_data_dir: /content/NeTI/syn_rgb
   placeholder_token: <*>
-  super_category_token: viewpoint
+  super_category_token: side
   dataloader_num_workers: 2
 model:
   pretrained_model_name_or_path: CompVis/stable-diffusion-v1-4
