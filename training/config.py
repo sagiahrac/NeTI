@@ -73,6 +73,8 @@ class ModelConfig:
     mapper_checkpoint_path: Optional[Path] = None
     # Whether to use the VPs encoder
     use_vps_encoder: bool = False
+    # Use xformers to reduce UNET memory usage
+    use_xformers: bool = False
 
     def __post_init__(self):
         if self.pe_sigmas is not None:

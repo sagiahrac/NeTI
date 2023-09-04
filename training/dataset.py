@@ -52,8 +52,7 @@ class TextualInversionDataset(Dataset):
         self.center_crop = center_crop
         self.flip_p = flip_p
 
-        self.categories_paths = list(self.data_root.glob("*"))
-        self.image_paths = list(self.data_root.glob("*/*"))
+        self.image_paths = list(self.data_root.glob("*/*.png"))
 
         self.num_images = len(self.image_paths)
         self._length = self.num_images
@@ -77,10 +76,14 @@ class TextualInversionDataset(Dataset):
         return self._length
 
     def __getitem__(self, i: int) -> Dict[str, Any]:
+        # Path regexing to get category, azimuth and elevation
         image_path = self.image_paths[i % self.num_images]
         category = image_path.parent.name
+        filename_split = str(image_path.name).split("_")
+        azimuth = int(filename_split[1].replace('az', ''))
+        elevation = int(filename_split[2].replace('el', ''))
+        
         image = Image.open(image_path)
-        elev, azim = 15, 20 # TODO: infer from path
 
         if not image.mode == "RGB":
             image = image.convert("RGB")
@@ -94,8 +97,8 @@ class TextualInversionDataset(Dataset):
             max_length=self.tokenizer.model_max_length,
             return_tensors="pt",
         ).input_ids[0]
-        example["elevation"] = torch.tensor(elev)
-        example["azimuth"] = torch.tensor(azim)
+        example["elevation"] = torch.tensor(elevation)
+        example["azimuth"] = torch.tensor(azimuth)
 
         # default to score-sde preprocessing
         img = np.array(image).astype(np.uint8)

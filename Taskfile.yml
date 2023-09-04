@@ -3,7 +3,7 @@
 version: '3'
 
 tasks:
-  train-example:
+  train:
     cmds:
       - COMET_API_KEY="MvZFPCkt1CN1iqrnsgahJ2Rwa" python scripts/train.py --config_path input_configs/train.yaml
   

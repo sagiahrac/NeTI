@@ -4,7 +4,7 @@ log:
   save_steps: 100
   report_to: comet_ml
 data:
-  train_data_dir: /content/NeTI/_rendered
+  train_data_dir: /content/NeTI/syn_rgb
   placeholder_token: <*>
   super_category_token: doll
   dataloader_num_workers: 8
@@ -18,10 +18,11 @@ model:
   num_pe_time_anchors: 10
   output_bypass: True
   use_vps_encoder: True
+  use_xformers: False
 eval:
-  validation_steps: 1 # TODO: change to 250
+  validation_steps: 250
 optim:
   max_train_steps: 1000
   learning_rate: 1e-3
   train_batch_size: 1
-  gradient_accumulation_steps: 4
+  gradient_accumulation_steps: 8
