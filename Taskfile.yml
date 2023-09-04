@@ -28,7 +28,7 @@ tasks:
   get-data:
     cmds:
       - cp /content/drive/MyDrive/research/rendered_100.zip .
-      - unzip rendered_100.zip
+      - unzip -q rendered_100.zip
   
   create-env:
     cmds:
@@ -38,6 +38,7 @@ tasks:
     cmds:
       - echo "Building NeTI dev env"
       - task: create-env
+      - mamba install -n neti -c anaconda -c conda-forge -c comet_ml comet_ml
       - echo "Configuring GIT user"
       - task: git-config
       - echo "Getting VSCode extensions"

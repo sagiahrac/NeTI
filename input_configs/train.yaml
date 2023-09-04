@@ -1,13 +1,13 @@
 log:
   exp_name: neti-1
   exp_dir: /content/NeTI/experiments
-  save_steps: 100
+  save_steps: 250
   report_to: comet_ml
 data:
   train_data_dir: /content/NeTI/syn_rgb
   placeholder_token: <*>
-  super_category_token: doll
-  dataloader_num_workers: 8
+  super_category_token: viewpoint
+  dataloader_num_workers: 2
 model:
   pretrained_model_name_or_path: CompVis/stable-diffusion-v1-4
   use_nested_dropout: True
