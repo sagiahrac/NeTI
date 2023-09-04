@@ -24,6 +24,7 @@ tasks:
       - code --install-extension donjayamanne.githistory
       - code --install-extension eamodio.gitlens
       - code --install-extension task.vscode-task
+      - code --install-extension shd101wyy.markdown-preview-enhanced
   
   get-data:
     cmds:
