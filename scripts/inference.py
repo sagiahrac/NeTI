@@ -96,7 +96,7 @@ def main(infer_cfg: InferenceConfig):
         for truncation_idx in infer_cfg.truncation_idxs:
             print(f"Running with truncation index: {truncation_idx}")
             azimuth = torch.randint(0, 360, (1,))
-            elevation = torch.randint(-10, 90, (1,))
+            elevation = torch.min(torch.randint(-10, 90, (2,))).unsqueeze(0)
             prompt_image = run_inference(prompt=prompt,
                                          pipeline=pipeline,
                                          prompt_manager=prompt_manager,

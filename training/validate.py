@@ -46,7 +46,7 @@ class ValidationHandler:
         viewpoints = []
         for prompt in prompts:
             azimuth = torch.randint(0, 360, (1,))
-            elevation = torch.randint(-10, 90, (1,))
+            elevation = torch.min(torch.randint(-10, 90, (2,))).unsqueeze(0)
             viewpoints += [f"az{azimuth.numpy()[0]}el{elevation.numpy()[0]}"]
             
             images = self.infer_on_prompt(pipeline=pipeline,
