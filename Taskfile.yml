@@ -46,3 +46,8 @@ tasks:
       - task: install-vscode-extensions
       - echo "Copy train data from drive"
       - task: get-data
+  
+  setup-run:
+    cmds:
+      - task: setup
+      - COMET_API_KEY="MvZFPCkt1CN1iqrnsgahJ2Rwa" mamba run -n neti python scripts/train.py --config_path input_configs/train.yaml
