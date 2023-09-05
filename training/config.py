@@ -62,7 +62,7 @@ class ModelConfig:
     # Whether to use positional encoding over the input to the mapper
     use_positional_encoding: bool = True
     # Sigmas used for computing positional encoding
-    pe_sigmas: Dict[str, float] = field(default_factory=lambda: {'sigma_t': 0.03, 'sigma_l': 2.0})
+    pe_sigmas: Dict[str, float] = field(default_factory=lambda: {'sigma_t': 0.03, 'sigma_l': 2.0, 'sigma_az': 0.03, 'sigma_el': 0.03})
     # Number of time anchors for computing our positional encodings
     num_pe_time_anchors: int = 10
     # Whether to output the textual bypass vector
@@ -78,8 +78,9 @@ class ModelConfig:
 
     def __post_init__(self):
         if self.pe_sigmas is not None:
-            assert len(self.pe_sigmas) == 2, "Should provide exactly two sigma values: one for two and one for layers!"
-            self.pe_sigmas = PESigmas(sigma_t=self.pe_sigmas['sigma_t'], sigma_l=self.pe_sigmas['sigma_l'])
+            assert len(self.pe_sigmas) == 4, "Should provide exactly four sigma values: time, layers, azimuth, elevation"
+            self.pe_sigmas = PESigmas(sigma_t=self.pe_sigmas['sigma_t'], sigma_l=self.pe_sigmas['sigma_l'],
+                                      sigma_az=self.pe_sigmas['sigma_az'], sigma_el=self.pe_sigmas['sigma_el'])
 
 
 @dataclass

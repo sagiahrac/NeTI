@@ -53,7 +53,7 @@ class InferenceConfig:
         self._set_prompts()
         self._set_input_paths()
         self.inference_dir.mkdir(exist_ok=True, parents=True)
-        if type(self.truncation_idxs) == int:
+        if type(self.truncation_idxs) == int or self.truncation_idxs is None:
             self.truncation_idxs = [self.truncation_idxs]
         self.torch_dtype = torch.float16 if self.torch_dtype == "fp16" else torch.float32
 
@@ -106,10 +106,11 @@ def main(infer_cfg: InferenceConfig):
                                          truncation_idx=truncation_idx,
                                          azimuth=azimuth,
                                          elevation=elevation)
+            viewpoint = f"azim{azimuth.numpy()[0]}_elev{elevation.numpy()[0]}"
             if truncation_idx is not None:
-                save_name = f"{prompt.format(placeholder_token)}_truncation_{truncation_idx}.png"
+                save_name = f"{prompt.format(viewpoint)}_truncation_{truncation_idx}.png"
             else:
-                save_name = f"{prompt.format(placeholder_token)}.png"
+                save_name = f"{prompt.format(viewpoint)}.png"
             prompt_image.save(infer_cfg.inference_dir / save_name)
 
 

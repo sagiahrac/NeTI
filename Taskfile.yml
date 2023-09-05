@@ -7,11 +7,15 @@ tasks:
     cmds:
       - COMET_API_KEY="MvZFPCkt1CN1iqrnsgahJ2Rwa" python scripts/train.py --config_path input_configs/train.yaml
   
+  inference:
+    cmds:
+      - python scripts/inference.py --config_path input_configs/inference.yaml
+
   git-config:
     cmds:
       - git config user.email "sagiahrac@mail.tau.ac.il"
       - git config user.name "sagi ahrac"
-  
+
   install-vscode-extensions:
     cmds:
       - code --install-extension ms-python.python
@@ -25,16 +29,16 @@ tasks:
       - code --install-extension eamodio.gitlens
       - code --install-extension task.vscode-task
       - code --install-extension shd101wyy.markdown-preview-enhanced
-  
+
   get-data:
     cmds:
-      - cp /content/drive/MyDrive/research/rendered_100.zip .
-      - unzip -q rendered_100.zip
-  
+      - unzip -q /content/drive/MyDrive/research/rendered_100.zip
+      - unzip -q /content/drive/MyDrive/research/logs/*.zip
+
   create-env:
     cmds:
       - mamba env create -f environment/environment.yaml
-  
+
   setup-colab:
     cmds:
       - echo "Building NeTI dev env"
@@ -44,13 +48,12 @@ tasks:
       - task: git-config
       - echo "Copy train data from drive"
       - task: get-data
-  
+
   setup:
     cmds:
       - task: setup-colab
       - echo "Getting VSCode extensions"
       - task: install-vscode-extensions
-
 
   setup-run:
     cmds:

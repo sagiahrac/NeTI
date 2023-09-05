@@ -1,5 +1,10 @@
-input_dir: /path/to/experiments/exp_name
-prompts_file_path: /path/to/prompts.txt
-iteration: 250
+input_dir: /content/NeTI/experiments/neti-1
+prompts: [
+  "{} view of a nike shoe",
+  "A photo of a pokemon {} view",
+  "A rabbit from {} view",
+  "A photo of a samurai {} view",
+]
+iteration: 1000
 seeds: [ 0, 1, 2, 3 ]
 torch_dtype: fp16

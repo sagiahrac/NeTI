@@ -1,5 +1,5 @@
 log:
-  exp_name: neti-1
+  exp_name: neti-2
   exp_dir: /content/NeTI/experiments
   save_steps: 250
   report_to: comet_ml
@@ -14,8 +14,8 @@ model:
   nested_dropout_prob: 0.5
   normalize_mapper_output: True
   use_positional_encoding: True
-  pe_sigmas: {'sigma_t': 0.03, 'sigma_l': 2.0}
-  num_pe_time_anchors: 10
+  pe_sigmas: {'sigma_t': 0.03, 'sigma_l': 2.0, 'sigma_az': 0.03, 'sigma_el': 0.03}
+  num_pe_time_anchors: 100
   output_bypass: True
   use_vps_encoder: True
   use_xformers: False

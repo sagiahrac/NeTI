@@ -9,7 +9,7 @@ from transformers import CLIPTokenizer
 
 from models.neti_clip_text_encoder import NeTICLIPTextModel
 from models.neti_mapper import NeTIMapper
-from models.positional_encoding import NeTIPositionalEncoding, BasicEncoder
+from models.positional_encoding import NeTIPositionalEncoding, NeTIPositionalEncodingWithVPs, BasicEncoder
 from training.config import RunConfig
 
 
@@ -63,7 +63,7 @@ class CheckpointHandler:
                                  use_vps_encoder=cfg.model.use_vps_encoder)
         neti_mapper.load_state_dict(mapper_ckpt['state_dict'], strict=True)
         encoder = mapper_ckpt['encoder']
-        if isinstance(encoder, NeTIPositionalEncoding):
+        if isinstance(encoder, NeTIPositionalEncoding) or isinstance(encoder, NeTIPositionalEncodingWithVPs):
             encoder.w = nn.Parameter(mapper_ckpt['encoder'].w.cuda())
         elif isinstance(encoder, BasicEncoder):
             encoder.normalized_timesteps = mapper_ckpt['encoder'].normalized_timesteps.cuda()
