@@ -32,7 +32,7 @@ tasks:
 
   get-data:
     cmds:
-      - unzip -q /content/drive/MyDrive/research/rendered_100.zip
+      - unzip -q /content/drive/MyDrive/research/rendered_1000.zip
       - unzip -q /content/drive/MyDrive/research/logs/*.zip
 
   create-env:
