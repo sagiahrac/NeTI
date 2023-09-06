@@ -1,3 +1,5 @@
+# This repo is a follow up research based on NeTI and Textual Inversion papers.
+
 # Viewpoints
 ### Azimuth
 0: Right view
