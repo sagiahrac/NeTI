@@ -1,15 +1,16 @@
-# This repo is a follow up research based on NeTI and Textual Inversion papers.
+# This repo is a follow up research based on [NeTI](https://neuraltextualinversion.github.io/NeTI/) and [Textual Inversion](https://textual-inversion.github.io/) papers.
 
-# Viewpoints
+# Viewpoints Keymap
 ### Azimuth
-0: Right view
-90: Front view
-180: Left view
-270: Back view
+
+- 0: Right view
+- 90: Front view
+- 180: Left view
+- 270: Back view
 
 ### Elevation
-0: Horizontal view
-90: Top view
+- 0: Horizontal view
+- 90: Top view
 
 # A Neural Space-Time Representation for Text-to-Image Personalization
 
