@@ -69,7 +69,7 @@ class TextualInversionDataset(Dataset):
             "lanczos": PIL_INTERPOLATION["lanczos"],
         }[interpolation]
 
-        self.templates = [prompt + ' {} view' for prompt in IMAGENET_TEMPLATES_SMALL]
+        self.templates = [prompt + ' {}' for prompt in IMAGENET_TEMPLATES_SMALL]
         self.flip_transform = transforms.RandomHorizontalFlip(p=self.flip_p)
 
     def __len__(self) -> int:

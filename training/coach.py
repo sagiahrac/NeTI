@@ -157,6 +157,7 @@ class Coach:
                     num_positives = 1
                     positive_ids = sample_positive_ids(self.tokenizer, num_positives).cuda()
                     if num_positives > 0:
+                        denoise_loss = loss
                         steer_loss = calculate_steer_loss(
                             token_embedding,
                             batch["input_ids"],
@@ -166,8 +167,7 @@ class Coach:
                             positive_ids
                         )
 
-                        loss += steer_loss
-                        loss /= 2
+                        loss = denoise_loss + 0.01*steer_loss
                         
                     self.accelerator.backward(loss)
 
