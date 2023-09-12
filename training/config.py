@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Dict
+from datetime import datetime
 
 from constants import VALIDATION_PROMPTS
 from utils.types import PESigmas
@@ -10,7 +11,7 @@ from utils.types import PESigmas
 class LogConfig:
     """ Parameters for logging and saving """
     # Name of experiment. This will be the name of the output folder
-    exp_name: str
+    exp_name: str = datetime.now().strftime("neti-plus-%Y-%m-%d_%H-%M-%S")
     # The output directory where the model predictions and checkpoints will be written
     exp_dir: Path = Path("./outputs")
     # Save interval

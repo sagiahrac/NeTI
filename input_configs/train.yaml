@@ -1,6 +1,5 @@
 log:
-  exp_name: neti-2
-  exp_dir: /content/NeTI/experiments
+  exp_dir: /content/drive/MyDrive/research/logs
   save_steps: 250
   report_to: comet_ml
 data:
