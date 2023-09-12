@@ -29,6 +29,9 @@ from packaging import version
 if is_xformers_available():
     import xformers
 
+from training.reversion import calculate_steer_loss, get_importance_sampling_probs, get_stop_special_ids, sample_positive_ids
+import numpy as np
+
 
 class Coach:
 
@@ -78,6 +81,11 @@ class Coach:
                                                     save_root=self.cfg.log.exp_dir)
 
     def train(self):
+        ### ReVersion
+        importance_sampling = True
+        list_of_candidates, prob_dist = get_importance_sampling_probs(self.noise_scheduler.config.num_train_timesteps)
+        stop_ids, special_ids = get_stop_special_ids(self.tokenizer)
+        
         total_batch_size = self.cfg.optim.train_batch_size * self.accelerator.num_processes * \
                            self.cfg.optim.gradient_accumulation_steps
         self.logger.log_start_of_training(total_batch_size=total_batch_size, num_samples=len(self.train_dataset))
@@ -103,8 +111,17 @@ class Coach:
                     # Sample noise that we'll add to the latents
                     noise = torch.randn_like(latents)
                     bsz = latents.shape[0]
-                    timesteps = torch.randint(low=0, high=self.noise_scheduler.config.num_train_timesteps,
-                                              size=(bsz,), device=latents.device)
+                    
+                    if importance_sampling:
+                        timesteps = np.random.choice(
+                            list_of_candidates,
+                            size=bsz,
+                            replace=True,
+                            p=prob_dist)
+                        timesteps = torch.tensor(timesteps).cuda()
+                    else:
+                        timesteps = torch.randint(low=0, high=self.noise_scheduler.config.num_train_timesteps,
+                                                size=(bsz,), device=latents.device)
                     timesteps = timesteps.long()
 
                     # Add noise to the latents according to the noise magnitude at each timestep
@@ -134,6 +151,24 @@ class Coach:
                         raise ValueError(f"Unknown prediction type {self.noise_scheduler.config.prediction_type}")
 
                     loss = F.mse_loss(model_pred.float(), target.float(), reduction="mean")
+                    
+                    # ReVersion
+                    token_embedding = self.accelerator.unwrap_model(self.text_encoder).get_input_embeddings()  # with grad
+                    num_positives = 1
+                    positive_ids = sample_positive_ids(self.tokenizer, num_positives).cuda()
+                    if num_positives > 0:
+                        steer_loss = calculate_steer_loss(
+                            token_embedding,
+                            batch["input_ids"],
+                            self.placeholder_token_id,
+                            stop_ids,
+                            special_ids,
+                            positive_ids
+                        )
+
+                        loss += steer_loss
+                        loss /= 2
+                        
                     self.accelerator.backward(loss)
 
                     self.optimizer.step()

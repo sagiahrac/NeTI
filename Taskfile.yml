@@ -33,17 +33,18 @@ tasks:
   get-data:
     cmds:
       - unzip -q /content/drive/MyDrive/research/rendered_1000.zip
-      - unzip -q /content/drive/MyDrive/research/logs/*.zip
+      # - unzip -q /content/drive/MyDrive/research/logs/*.zip
 
   create-env:
     cmds:
       - mamba env create -f environment/environment.yaml
+      - mamba install -n neti -c anaconda -c conda-forge -c comet_ml comet_ml
+      - git clone https://github.com/ziqihuangg/ReVersion.git environment/src/reversion/
 
   setup-colab:
     cmds:
       - echo "Building NeTI dev env"
       - task: create-env
-      - mamba install -n neti -c anaconda -c conda-forge -c comet_ml comet_ml
       - echo "Configuring GIT user"
       - task: git-config
       - echo "Copy train data from drive"
