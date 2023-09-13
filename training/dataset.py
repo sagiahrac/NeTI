@@ -99,6 +99,29 @@ class TextualInversionDataset(Dataset):
         ).input_ids[0]
         example["elevation"] = torch.tensor(elevation)
         example["azimuth"] = torch.tensor(azimuth)
+        
+        #positive ids
+        from training.reversion import relation_words
+        positive_words = random.sample(relation_words, k=1)
+        if elevation > 60:
+            positive_words.append("overhead")
+        elif azimuth in range(45, 135):
+            positive_words.append("front")
+        elif azimuth in range(225, 315):
+            positive_words.append("back")
+        else:
+            positive_words.append("side")
+
+        positive_words_string = " ".join(positive_words)
+        
+        example["positive_ids"] = self.tokenizer(
+            positive_words_string,
+            padding="max_length",
+            truncation=True,
+            max_length=self.tokenizer.model_max_length,
+            return_tensors="pt",
+        ).input_ids[0]
+        
 
         # default to score-sde preprocessing
         img = np.array(image).astype(np.uint8)

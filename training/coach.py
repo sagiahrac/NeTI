@@ -154,8 +154,9 @@ class Coach:
                     
                     # ReVersion
                     token_embedding = self.accelerator.unwrap_model(self.text_encoder).get_input_embeddings()  # with grad
-                    num_positives = 1
-                    positive_ids = sample_positive_ids(self.tokenizer, num_positives).cuda()
+                    num_positives = 2
+                    # positive_ids = sample_positive_ids(self.tokenizer, num_positives).cuda()
+                    positive_ids = batch['positive_ids']
                     if num_positives > 0:
                         denoise_loss = loss
                         steer_loss = calculate_steer_loss(
